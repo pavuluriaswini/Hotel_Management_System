@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Room Bookings</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        input, select { margin: 5px; padding: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; }
+    </style>
+</head>
+<body>
+
+<h2>Room Booking</h2>
+
+<form id="bookingForm">
+    <label>Guest:</label>
+    <select id="guestSelect" required></select><br>
+
+    <label>Room:</label>
+    <select id="roomSelect" required></select><br>
+
+    <label>Check-In Date:</label>
+    <input type="date" id="checkInDate" required><br>
+
+    <label>Check-Out Date:</label>
+    <input type="date" id="checkOutDate" required><br>
+
+    <button type="submit">Book Room</button>
+</form>
+
+<h3>All Bookings</h3>
+<table id="bookingTable">
+    <thead>
+        <tr>
+            <th>Guest</th>
+            <th>Room</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    fetchGuests();
+    fetchRooms();
+    fetchBookings();
+
+    document.getElementById("bookingForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const booking = {
+            guestId: document.getElementById("guestSelect").value,
+            roomId: document.getElementById("roomSelect").value,
+            checkInDate: document.getElementById("checkInDate").value,
+            checkOutDate: document.getElementById("checkOutDate").value
+        };
+
+        fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(booking)
+        })
+        .then(() => {
+            alert("Booking created!");
+            fetchBookings();
+            document.getElementById("bookingForm").reset();
+        });
+    });
+});
+
+function fetchGuests() {
+    fetch("/api/guests")
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("guestSelect");
+            select.innerHTML = "";
+            data.forEach(g => {
+                const option = document.createElement("option");
+                option.value = g.id;
+                option.text = g.name;
+                select.appendChild(option);
+            });
+        });
+}
+
+function fetchRooms() {
+    fetch("/api/rooms")
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById("roomSelect");
+            select.innerHTML = "";
+            data.forEach(r => {
+                const option = document.createElement("option");
+                option.value = r.id;
+                option.text = r.roomNumber + " (" + r.type + ")";
+                select.appendChild(option);
+            });
+        });
+}
+
+function fetchBookings() {
+    fetch("/api/bookings")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.querySelector("#bookingTable tbody");
+            tbody.innerHTML = "";
+            data.forEach(b => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${b.guest.name}</td>
+                    <td>${b.room.roomNumber}</td>
+                    <td>${b.checkInDate}</td>
+                    <td>${b.checkOutDate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+}
+</script>
+
+</body>
+</html>

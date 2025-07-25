@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guest Management</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; }
+    th, td { padding: 10px; }
+    input { margin: 5px; padding: 5px; }
+    button { padding: 6px 12px; }
+  </style>
+</head>
+<body>
+
+  <h1>Guest List</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Address</th>
+      </tr>
+    </thead>
+    <tbody id="guestTableBody">
+      <!-- Guest rows inserted here -->
+    </tbody>
+  </table>
+
+  <h2>Add New Guest</h2>
+  <form id="guestForm">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="text" id="phone" placeholder="Phone" required>
+    <input type="text" id="address" placeholder="Address" required>
+    <button type="submit">Add Guest</button>
+  </form>
+
+  <script>
+  const guestApiUrl = "http://localhost:8080/api/guests";
+
+  function loadGuests() {
+    fetch(guestApiUrl)
+      .then(res => res.json())
+      .then(data => {
+        console.log("Guests received:", data); // DEBUG
+        const tbody = document.getElementById("guestTableBody");
+        tbody.innerHTML = "";
+        data.forEach(guest => {
+          const row = `<tr>
+            <td>${guest.id}</td>
+            <td>${guest.name}</td>
+            <td>${guest.email}</td>
+            <td>${guest.phone}</td>
+            <td>${guest.address}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      })
+      .catch(err => console.error("GET error:", err));
+  }
+
+  document.getElementById("guestForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const newGuest = {
+      name: document.getElementById("name").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      address: document.getElementById("address").value.trim()
+    };
+
+    console.log("Submitting guest:", newGuest); // DEBUG
+
+    fetch(guestApiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newGuest)
+    })
+      .then(res => {
+        console.log("POST response:", res); // DEBUG
+        return res.json();
+      })
+      .then(data => {
+        loadGuests(); // refresh table
+        document.getElementById("guestForm").reset(); // clear form
+      })
+      .catch(err => console.error("POST error:", err)); // DEBUG
+  });
+
+  // Load guest list when page loads
+  loadGuests();
+</script>
+
+
+</body>
+</html>

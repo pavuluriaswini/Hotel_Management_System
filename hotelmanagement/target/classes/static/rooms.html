@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hotel Room Manager</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; }
+    th, td { padding: 10px; }
+    input { margin: 5px; padding: 5px; }
+    button { padding: 6px 12px; }
+  </style>
+</head>
+<body>
+
+  <h1>Hotel Room List</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Room Number</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="roomTableBody">
+      <!-- Room rows will be inserted here -->
+    </tbody>
+  </table>
+
+  <h2>Add New Room</h2>
+  <form id="roomForm">
+    <input type="text" id="roomNumber" placeholder="Room Number" required>
+    <input type="text" id="type" placeholder="Type" required>
+    <input type="number" id="price" placeholder="Price" required>
+    <input type="text" id="status" placeholder="Status" required>
+    <button type="submit">Add Room</button>
+  </form>
+
+  <script>
+    const apiUrl = "http://localhost:8080/api/rooms";
+
+    function loadRooms() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById("roomTableBody");
+          tbody.innerHTML = "";
+          data.forEach(room => {
+            const row = `<tr>
+              <td>${room.id}</td>
+              <td>${room.roomNumber}</td>
+              <td>${room.type}</td>
+              <td>${room.price}</td>
+              <td>${room.status}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+          });
+        });
+    }
+
+    document.getElementById("roomForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const newRoom = {
+        roomNumber: document.getElementById("roomNumber").value,
+        type: document.getElementById("type").value,
+        price: parseFloat(document.getElementById("price").value),
+        status: document.getElementById("status").value
+      };
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRoom)
+      })
+        .then(res => res.json())
+        .then(() => {
+          loadRooms();  // Refresh room list
+          document.getElementById("roomForm").reset();  // Clear form
+        });
+    });
+
+    // Initial load
+    loadRooms();
+  </script>
+
+</body>
+</html>
+
